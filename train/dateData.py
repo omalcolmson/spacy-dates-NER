@@ -29,7 +29,7 @@ daysOfTheWeekAsStrs = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "
 
 timeOfDayPhrases = ["MORNING", "AFTERNOON", "EVENING", "NIGHT"] #only night uses "at" for the preposition
 
-relativeToToday = ["TODAY", "TOMORROW", "YESTERDAY", "TONIGHT", "NEXT WEEK", "NEXT MONTH", "NEXT YEAR" ]
+relativeToToday = ["TODAY", "THIS", "TOMORROW", "TONIGHT", "NEXT WEEK", "NEXT MONTH", "NEXT YEAR"]
 
 
 

@@ -216,10 +216,12 @@ def genExactTimes() -> list:
     '''
     exactTimes = [] #list of timeStrs and their corresponding tuples of (start, end, label)
     preps = ["", "at ", "for "]
-    label = "TIME"
-    amTimePhrases = ["am", "AM", "a.m.", "A.M.", "in the morning"]
-    pmTimePhrases = ["pm", "PM", "p.m.", "P.M.", "in the afternoon", "in the evening", "at night"]
-    prepTimePhrases = ["in the morning", "in the afternoon", "in the evening", "at night"] #can be used with or without "o'clock"
+    amLabel = "AM TIME"
+    pmLabel = "PM TIME"
+    amTimePhrases = [" am", " AM", " a.m.", " A.M.", " in the morning", ""]
+    pmTimePhrases = [" pm", " PM", " p.m.", " P.M.", " in the afternoon", " in the evening", " at night", ""]
+    prepTimePhrases = [" in the morning", " in the afternoon", " in the evening", " at night", ""] #can be used with or without "o'clock"
+    oClock = [" o'clock", ""]
     #TODO
     for minute in range(0, 60):
         for hour in range(1, 13): #morning times
@@ -228,9 +230,42 @@ def genExactTimes() -> list:
 
             #morning times
             prep = random.choice(preps)
+            amTimePhrase = random.choice(amTimePhrases)
+            if amTimePhrase == " in the morning":
+                timeStr = f"{prep}{hourStr}:{minuteStr}{oClock[0]}{amTimePhrase}" # "at HH:MM o'clock in the morning" or "for HH:MM o'clock in the morning"
+            else:
+                timeStr = f"{prep}{hourStr}:{minuteStr}{oClock[1]}{amTimePhrase}" # "at HH:MM am" or "for HH:MM am" or "HH:MM am"
+            exactTimes.append((timeStr, createDateTuples(timeStr, prep, amLabel)))
+        
+        for hour in range(12, 0, -1): #afternoon times, going backwards from 12 to 1 pm
+            hourStr = random.choice(['0' + str(hour), str(hour)]) if hour < 10 else str(hour)
+            minuteStr = '0' + str(minute) if minute < 10 else str(minute)
+
+            #afternoon times
+            prep = random.choice(preps)
+            pmTimePhrase = random.choice(pmTimePhrases)
+            if pmTimePhrase.count("p") == 0: #if time phrase doesn't include pm in any form
+                timeStr = f"{prep}{hourStr}:{minuteStr}{oClock[0]}{pmTimePhrase}" #can include o'clock
+            else:
+                timeStr = f"{prep}{hourStr}:{minuteStr}{oClock[1]}{pmTimePhrase}" #don't include o'clock
+            exactTimes.append((timeStr, createDateTuples(timeStr, prep, pmLabel)))
+        
+        for hour in range(0, 24): #for 24 hour time, which should start at 0:00 and end at 23:59
+            hourStr = random.choice(['0' + str(hour), str(hour)]) if hour < 10 else str(hour)
+            minuteStr = '0' + str(minute) if minute < 10 else str(minute)
+            label = amLabel if hour < 12 else pmLabel
+            #24 hour time
+            prep = random.choice(preps)
+            timeStr = f"{prep}{hourStr}:{minuteStr} hours"
+            exactTimes.append((timeStr, createDateTuples(timeStr, prep, label)))
             
+            prep = random.choice(preps)
             timeStr = f"{prep}{hourStr}:{minuteStr}"
-            
+            exactTimes.append((timeStr, createDateTuples(timeStr, prep, label)))
+
+            prep = random.choice(preps)
+            timeStr = f"{prep}{hourStr}{minuteStr} hours"
+            exactTimes.append((timeStr, createDateTuples(timeStr, prep, label)))
 
     return exactTimes
 
@@ -247,6 +282,13 @@ def main():
     # with open("train/timePhrases.txt", "w") as f:
     #     f.write(f"{dateData.daysOfTheWeekAsStrs}\n")
     #     f.write("\n")
+    # aDate = exactDates[0] #should extract the tuple (dateStr, (start, end, label))
+    # start = aDate[1][0]
+    # end = aDate[1][1]
+    # print(aDate[0], aDate[0][start:end])
+    
     exactDates = genExactDates()
     writeTextToFile("train/exactDatePhrases.txt", exactDates)
+    exactTimes = genExactTimes()    
+    writeTextToFile("train/exactTimePhrases.txt", exactTimes)
 main()
