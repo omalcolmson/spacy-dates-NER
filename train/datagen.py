@@ -5,6 +5,8 @@ import dateData
 '''
 Train data generator
 
+The goal of this document is to generate data for training/refining spaCy's NER model for better date and time recognition 
+
 Train Data format:
 TRAIN_DATA = [
     (str, {
@@ -81,6 +83,12 @@ def createDateTuples(dateStr: str, prep: str) -> tuple:
     end = len(dateStr)
     return (start, end, "DATE")
 
+def handleDateStrVars(dateStr: str) -> str:
+    dateStr = random.choice([dateStr, dateStr.lower(), dateStr.lower().capitalize()])
+    if len(dateStr) == 3:
+        datrStr = random.choice([dateStr, dateStr + '.', dateStr + ','])
+    return dateStr
+
 def genExactDates() -> list:
     '''
     Exact Date Formats: (DOTW = Day of the Week)
@@ -92,7 +100,7 @@ def genExactDates() -> list:
     - DOTW, Month, DayInt, Year (e.g., Monday, January 1st, 2020)
     - DOTW, Month, DayInt (current year implied)
     - DOTW, MM/DD/YYYY
-    - DOTW, MM/DD
+    - DOTW, MM/DD (current year implied)
     - DOTW, YYYY/MM/DD
 
     Possible prepositions that may prepend exact dates:
@@ -132,18 +140,57 @@ def genExactDates() -> list:
 
                 # Month, DayInt, Year and Month, DayInt forms ---------------------------------------------------------------------
                 monthStr = random.choice(dateData.months.get(monthInt)) #full month name or abbreviated
-                monthStr = random.choice([monthStr.lower(), monthStr.lower().capitalize(), monthStr]) #lowercase, capitalized first letter, or all caps
-                if len(monthStr) == 3: #if monthstr is abbreviated
-                    monthStr = random.choice([monthStr, monthStr + '.']) #with or without period
+                monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
                 dayStr = dayIntsToStr(dayInt)
                 prep = random.choice(preps)
                 dateStr = f"{prep}{monthStr} {dayStr}, {yearStr}" # "on Month DayInt, Year" or "for Month DayInt, Year" or "Month DayInt, Year"
                 exactDates.append((dateStr, createDateTuples(dateStr, prep)))
 
+                monthStr = random.choice(dateData.months.get(monthInt)) #full month name or abbreviated
+                monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
                 prep = random.choice(preps)
                 dateStr = f"{prep}{monthStr} {dayStr}" # "on Month DayInt" or "for Month DayInt" or "Month DayInt"
                 exactDates.append((dateStr, createDateTuples(dateStr, prep)))
                 
+                # other forms that include specifying the day of the week ----------------------------------------------------------
+                theDate = date(yearInt, monthInt, dayInt)
+                dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
+                dotwAsStr = handleDateStrVars(dotwAsStr)
+                monthStr = random.choice(dateData.months.get(monthInt)) #full month name or abbreviated
+                monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
+                prep = random.choice(preps)
+                dateStr = f"{prep}{dotwAsStr}, {monthStr} {dayStr}, {yearStr}" # "on DOTW, Month DayInt, Year" or "for DOTW, Month DayInt, Year" or "DOTW, Month DayInt, Year"
+                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+
+                dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
+                dotwAsStr = handleDateStrVars(dotwAsStr)
+                monthStr = '0' + str(monthInt) if monthInt < 10 else str(monthInt)
+                dayStr = '0' + str(dayInt) if dayInt < 10 else str(dayInt)
+                prep = random.choice(preps)
+                dateStr = f"{prep}{dotwAsStr}, {monthStr}/{dayStr}/{yearInt}" # "on DOTW, MM/DD/YYYY" or "for DOTW, MM/DD/YYYY" or "DOTW, MM/DD/YYYY" 
+                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                dateStr = f"{prep}{dotwAsStr}, {yearInt}/{monthStr}/{dayStr}" # "on DOTW, YYYY/MM/DD" or "for DOTW, YYYY/MM/DD" or "DOTW, YYYY/MM/DD"  
+                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+
+                if yearInt == curYear:
+                    dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
+                    dotwAsStr = handleDateStrVars(dotwAsStr)
+                    monthStr = random.choice(dateData.months.get(monthInt)) #full month name or abbreviated
+                    monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
+                    prep = random.choice(preps)
+                    dateStr = f"{prep}{dotwAsStr}, {monthStr} {dayStr}" # "on DOTW, Month DayInt" or "for DOTW, Month DayInt" or "DOTW, Month DayInt" all for the current year
+                    exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+
+                    dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
+                    dotwAsStr = handleDateStrVars(dotwAsStr)
+                    monthStr = '0' + str(monthInt) if monthInt < 10 else str(monthInt)
+                    dayStr = '0' + str(dayInt) if dayInt < 10 else str(dayInt)
+                    prep = random.choice(preps)
+                    dateStr = f"{prep}{dotwAsStr}, {monthStr}/{dayStr}" # "on DOTW, MM/DD" or "for DOTW, MM/DD" or "DOTW, MM/DD" all for the current year
+                    exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+
+
+
     return exactDates
 
 
