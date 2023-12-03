@@ -75,13 +75,13 @@ def dayIntsToStr(dayInt: int) -> str:
 
     return dayStr
 
-def createDateTuples(dateStr: str, prep: str) -> tuple:
+def createDateTuples(dateStr: str, prep: str, label: str) -> tuple:
     '''
     Creates a tuple of (start, end, label) for a given dateStr
     '''
     start = len(prep)
     end = len(dateStr)
-    return (start, end, "DATE")
+    return (start, end, label)
 
 def handleDateStrVars(dateStr: str) -> str:
     dateStr = random.choice([dateStr, dateStr.lower(), dateStr.lower().capitalize()])
@@ -111,6 +111,7 @@ def genExactDates() -> list:
 
     curYear = date.today().year
     preps = ["", "on ", "for "]
+    label = "DATE"
 
     exactDates = [] #list of dateStrs and their corresponding tuples of (start, end, label)
     
@@ -119,24 +120,24 @@ def genExactDates() -> list:
             for yearInt in range (curYear, curYear+3):
                 if monthInt == 2 and dayInt > 28:
                     continue #skip this iteration and continue to next month
-                monthStr = '0' + str(monthInt) if monthInt < 10 else str(monthInt)
-                if monthStr in have30Days and dayInt > 30:
+                monthStr = random.choice(['0' + str(monthInt), str(monthInt)]) if monthInt < 10 else str(monthInt)
+                if ('0' + str(monthInt) if monthInt < 10 else str(monthInt)) in have30Days and dayInt > 30:
                     continue #skip this iteration and continue to next month
                 #anything past this should be a month in have31Days
-                dayStr = '0' + str(dayInt) if dayInt < 10 else str(dayInt)
+                dayStr = random.choice(['0' + str(dayInt), str(dayInt)]) if dayInt < 10 else str(dayInt)
                 yearStr = str(yearInt)
                 # MM/DD/YYYY, MM/DD, and YYYY/MM/DD forms ------------------------------------------------------------------------
                 prep = random.choice(preps)
                 dateStr = f"{prep}{monthStr}/{dayStr}/{yearStr}" # "on MM/DD/YYYY", "for MM/DD/YYYY" or "MM/DD/YYYY"
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                 prep = random.choice(preps)
                 dateStr = f"{random.choice(preps)}{monthStr}/{dayStr}"# "on MM/DD", "for MM/DD" or "MM/DD
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                 prep = random.choice([preps[0], preps[2]])
                 dateStr = f"{prep}{yearStr}/{monthStr}/{dayStr}" # "for YYYY/MM/DD" or "YYYY/MM/DD"
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                 # Month, DayInt, Year and Month, DayInt forms ---------------------------------------------------------------------
                 monthStr = random.choice(dateData.months.get(monthInt)) #full month name or abbreviated
@@ -144,13 +145,13 @@ def genExactDates() -> list:
                 dayStr = dayIntsToStr(dayInt)
                 prep = random.choice(preps)
                 dateStr = f"{prep}{monthStr} {dayStr}, {yearStr}" # "on Month DayInt, Year" or "for Month DayInt, Year" or "Month DayInt, Year"
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                 monthStr = random.choice(dateData.months.get(monthInt)) #full month name or abbreviated
                 monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
                 prep = random.choice(preps)
                 dateStr = f"{prep}{monthStr} {dayStr}" # "on Month DayInt" or "for Month DayInt" or "Month DayInt"
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
                 
                 # other forms that include specifying the day of the week ----------------------------------------------------------
                 theDate = date(yearInt, monthInt, dayInt)
@@ -160,7 +161,7 @@ def genExactDates() -> list:
                 monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
                 prep = random.choice(preps)
                 dateStr = f"{prep}{dotwAsStr}, {monthStr} {dayStr}, {yearStr}" # "on DOTW, Month DayInt, Year" or "for DOTW, Month DayInt, Year" or "DOTW, Month DayInt, Year"
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                 dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
                 dotwAsStr = handleDateStrVars(dotwAsStr)
@@ -168,9 +169,9 @@ def genExactDates() -> list:
                 dayStr = '0' + str(dayInt) if dayInt < 10 else str(dayInt)
                 prep = random.choice(preps)
                 dateStr = f"{prep}{dotwAsStr}, {monthStr}/{dayStr}/{yearInt}" # "on DOTW, MM/DD/YYYY" or "for DOTW, MM/DD/YYYY" or "DOTW, MM/DD/YYYY" 
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
                 dateStr = f"{prep}{dotwAsStr}, {yearInt}/{monthStr}/{dayStr}" # "on DOTW, YYYY/MM/DD" or "for DOTW, YYYY/MM/DD" or "DOTW, YYYY/MM/DD"  
-                exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                 if yearInt == curYear:
                     dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
@@ -179,21 +180,59 @@ def genExactDates() -> list:
                     monthStr = handleDateStrVars(monthStr) #handles all format variations of lowercase, uppercase, capitalized, and abbrev w or w/o period
                     prep = random.choice(preps)
                     dateStr = f"{prep}{dotwAsStr}, {monthStr} {dayStr}" # "on DOTW, Month DayInt" or "for DOTW, Month DayInt" or "DOTW, Month DayInt" all for the current year
-                    exactDates.append((dateStr, createDateTuples(dateStr, prep)))
+                    exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
                     dotwAsStr = random.choice(dateData.daysOfTheWeek[theDate.isoweekday()])
                     dotwAsStr = handleDateStrVars(dotwAsStr)
-                    monthStr = '0' + str(monthInt) if monthInt < 10 else str(monthInt)
-                    dayStr = '0' + str(dayInt) if dayInt < 10 else str(dayInt)
+                    monthStr = random.choice(['0' + str(monthInt), str(monthInt)]) if monthInt < 10 else str(monthInt)
+                    dayStr = random.choice(['0' + str(dayInt), str(dayInt)]) if dayInt < 10 else str(dayInt)
                     prep = random.choice(preps)
                     dateStr = f"{prep}{dotwAsStr}, {monthStr}/{dayStr}" # "on DOTW, MM/DD" or "for DOTW, MM/DD" or "DOTW, MM/DD" all for the current year
-                    exactDates.append((dateStr, createDateTuples(dateStr, prep)))
-
-
+                    exactDates.append((dateStr, createDateTuples(dateStr, prep, label)))
 
     return exactDates
 
+def genExactTimes() -> list:
+    '''
+    Exact Time Formats: 
+    
+    - HH:MM (24hr)
+    - HH:MM (12hr)
 
+    Possible prepositions that may prepend exact times:
+    - at
+    - for
+
+    Possible time of day phrases that may follow exact times:
+    - in the morning
+    - in the afternoon
+    - in the evening
+    - at night
+    - am, AM, a.m., A.M.
+    - pm, PM, p.m., P.M.
+    - o'clock
+    - hours (for 24 hour time)
+
+    '''
+    exactTimes = [] #list of timeStrs and their corresponding tuples of (start, end, label)
+    preps = ["", "at ", "for "]
+    label = "TIME"
+    amTimePhrases = ["am", "AM", "a.m.", "A.M.", "in the morning"]
+    pmTimePhrases = ["pm", "PM", "p.m.", "P.M.", "in the afternoon", "in the evening", "at night"]
+    prepTimePhrases = ["in the morning", "in the afternoon", "in the evening", "at night"] #can be used with or without "o'clock"
+    #TODO
+    for minute in range(0, 60):
+        for hour in range(1, 13): #morning times
+            hourStr = random.choice(['0' + str(hour), str(hour)]) if hour < 10 else str(hour)
+            minuteStr = '0' + str(minute) if minute < 10 else str(minute)
+
+            #morning times
+            prep = random.choice(preps)
+            
+            timeStr = f"{prep}{hourStr}:{minuteStr}"
+            
+
+    return exactTimes
 
 def writeTextToFile( fileName: str, textList: list) -> None:
     '''
